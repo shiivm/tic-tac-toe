@@ -17,8 +17,8 @@ const cells = document.querySelectorAll('.cell');
 startGame();
 
 function startGame() {
-    document.querySelector('.gameOver').style.display = "none";
-    document.querySelector('.gameOver').innerText = "";
+    document.querySelector('.endgame').style.display = "none";
+    document.querySelector('.endgame .text').innerText = "";
     for (let i = 0; i < cells.length; i++) {
         cells[i].innerText = '';
         cells[i].style.removeProperty('background-color');
@@ -91,15 +91,15 @@ function gameOver(gameWon) {
 }
 
 function declareWinner(who) {
-    document.querySelector(".gameOver").style.display = "block";
-    document.querySelector(".gameOver").innerText = who;
+    document.querySelector(".endgame").style.display = "block";
+    document.querySelector(".endgame .text").innerText = who;
 }
 function availableCell() {
     return initialBoard.filter((elm, i) => i === elm);
 }
 
 function bestSpot() {
-    return availableCell()[0];
+    return minimax(initialBoard, computer).index;
 }
 
 function checkTie() {
@@ -112,4 +112,53 @@ function checkTie() {
         return true;
     }
     return false;
+}
+
+function minimax(newBoard, player) {
+    var availSpots = availableCell(newBoard);
+
+    if (checkWin(newBoard, person)) {
+        return { score: -10 };
+    } else if (checkWin(newBoard, computer)) {
+        return { score: 10 };
+    } else if (availSpots.length === 0) {
+        return { score: 0 };
+    }
+    var moves = [];
+    for (let i = 0; i < availSpots.length; i++) {
+        var move = {};
+        move.index = newBoard[availSpots[i]];
+        newBoard[availSpots[i]] = player;
+
+        if (player === computer)
+            move.score = minimax(newBoard, person).score;
+        else
+            move.score = minimax(newBoard, computer).score;
+        newBoard[availSpots[i]] = move.index;
+        if ((player === computer && move.score === 10) || (player === person && move.score === -10))
+            return move;
+        else
+            moves.push(move);
+    }
+
+    let bestMove, bestScore;
+    if (player === computer) {
+        bestScore = -1000;
+        for (let i = 0; i < moves.length; i++) {
+            if (moves[i].score > bestScore) {
+                bestScore = moves[i].score;
+                bestMove = i;
+            }
+        }
+    } else {
+        bestScore = 1000;
+        for (let i = 0; i < moves.length; i++) {
+            if (moves[i].score < bestScore) {
+                bestScore = moves[i].score;
+                bestMove = i;
+            }
+        }
+    }
+
+    return moves[bestMove];
 }
